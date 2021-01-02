@@ -1,6 +1,7 @@
 from skimage import io
 import numpy as np
 import sys
+from PIL import Image as im
 
 np.set_printoptions(threshold=sys.maxsize, linewidth=500)
 
@@ -106,14 +107,31 @@ class Solver:
                 print(f"Could not find a solution to the maze after taking {i + 1} steps!")
                 print(self.maze)
                 break
+        return self.maze
+
+
+class To_image:
+
+    def __init__(self, solved_maze):
+        self.solved_maze = solved_maze
+
+    def paintit(self):
+        self.solved_maze = np.where(self.solved_maze == 1, 255, self.solved_maze)
+        self.solved_maze = np.where(self.solved_maze == 9, 120, self.solved_maze)
+        self.solved_maze = np.where(self.solved_maze == 3, 120, self.solved_maze)
+        data = im.fromarray(self.solved_maze)
+        data = data.convert("RGB")
+        data.save("solution.png")
+
 
 while True:
     try:
-        qwe = Img_process(r"YOUR OWN PATH HERE")
+        maze_pic = Img_process(r"YOUR OWN PATH HERE")
         break
     except FileNotFoundError:
-        qwe = Img_process(r"C:\Users\Memo\Desktop\Python\Projects\Maze_IMG_Process\maze50x50.png")
+        maze_pic = Img_process(r"C:\Users\Memo\Desktop\Python\Projects\Maze_IMG_Process\maze200x200.png")
         break
-maze_to_be_solved = qwe.condense()
-asd = Solver(maze_to_be_solved)
-asd.move_forward()
+
+maze_to_be_solved = maze_pic.condense()
+maze_solved = Solver(maze_to_be_solved).move_forward()
+To_image(maze_solved).paintit()
