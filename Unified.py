@@ -35,13 +35,7 @@ class Img_process:
         return self.maze_condensed, self.start, self.end
 
 
-def change_1_to_0(maze_rev):
-    maze_rev = np.where(maze_rev == 0, 5, maze_rev)
-    maze_rev = np.where(maze_rev == 1, 0, maze_rev)
-    maze_rev = np.where(maze_rev == 5, 1, maze_rev)
-    return maze_rev
-
-def change_0_to_1(maze_rev):
+def swap_1_and_zero(maze_rev):
     maze_rev = np.where(maze_rev == 0, 5, maze_rev)
     maze_rev = np.where(maze_rev == 1, 0, maze_rev)
     maze_rev = np.where(maze_rev == 5, 1, maze_rev)
@@ -158,10 +152,10 @@ To_image(maze_solved).paintit()
 
 maze_to_be_solved_astar, astar_start, astar_end = maze_pic.condense(False)  # For A* pathfinding
 
-maze_inv = change_1_to_0(maze_to_be_solved_astar) # Change 1s to 0s for pathfinding algorithm
+maze_inv = swap_1_and_zero(maze_to_be_solved_astar) # Change 1s to 0s for pathfinding algorithm
 
 path, maze_solved_astar = astar(maze_inv,astar_start,astar_end) # Gives both the path in coordinates and the solved maze with number "9" replacing passed positions
 
-maze_solved_astar = change_0_to_1(maze_solved_astar) # Changes back to reverse mode for image drawing.
+maze_solved_astar = swap_1_and_zero(maze_solved_astar) # Changes back to reverse mode for image drawing.
 
 To_image(maze_solved_astar).paintit() # Draws it
