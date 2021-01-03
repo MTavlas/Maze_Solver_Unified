@@ -2,6 +2,7 @@ from skimage import io
 import numpy as np
 import sys
 from PIL import Image as im
+from a_star_pathfinding import Node, astar
 
 np.set_printoptions(threshold=sys.maxsize, linewidth=500)
 
@@ -12,7 +13,7 @@ class Img_process:
         self.maze_dir = maze_dir
         self.maze = io.imread(self.maze_dir, as_gray=True)
 
-    def condense(self):
+    def condense(self, want_ends=True):
         condensed = []
         length = int(self.maze.size ** 0.5)
         for j in range(0, length, 8):
@@ -22,16 +23,29 @@ class Img_process:
             condensed.append(row)
         self.maze_condensed = np.array(condensed)
         self.height = len(self.maze_condensed) - 1
-        self.maze_condensed[0] = np.where(self.maze_condensed[0] == 1, 2, self.maze_condensed[0])
-        self.maze_condensed[self.height] = np.where(self.maze_condensed[self.height] == 1, 3,
-                                                    self.maze_condensed[self.height])
-        return self.maze_condensed
 
-    """def start_and_end(self):
-        self.height = len(self.maze_condensed)
-        self.maze_condensed[0] = np.where(self.maze_condensed[0] == 1, 2, self.maze_condensed[0])
-        self.maze_condensed[self.height] = np.where(self.maze_condensed[self.height] == 1, 3, self.maze_condensed[self.height])
-        return self.maze_condensed"""
+        if want_ends:
+            self.maze_condensed[0] = np.where(self.maze_condensed[0] == 1, 2, self.maze_condensed[0])
+            self.maze_condensed[self.height] = np.where(self.maze_condensed[self.height] == 1, 3,
+                                                        self.maze_condensed[self.height])
+            return self.maze_condensed
+
+        self.start = (np.where(self.maze_condensed == 1)[0][0],np.where(self.maze_condensed == 1)[1][0])
+        self.end = (np.where(self.maze_condensed == 1)[0][-1],np.where(self.maze_condensed == 1)[1][-1])
+        return self.maze_condensed, self.start, self.end
+
+
+def change_1_to_0(maze_rev):
+    maze_rev = np.where(maze_rev == 0, 5, maze_rev)
+    maze_rev = np.where(maze_rev == 1, 0, maze_rev)
+    maze_rev = np.where(maze_rev == 5, 1, maze_rev)
+    return maze_rev
+
+def change_0_to_1(maze_rev):
+    maze_rev = np.where(maze_rev == 0, 5, maze_rev)
+    maze_rev = np.where(maze_rev == 1, 0, maze_rev)
+    maze_rev = np.where(maze_rev == 5, 1, maze_rev)
+    return maze_rev
 
 
 class Solver:
@@ -129,9 +143,25 @@ while True:
         maze_pic = Img_process(r"YOUR OWN PATH HERE")
         break
     except FileNotFoundError:
-        maze_pic = Img_process(r"C:\Users\Memo\Desktop\Python\Projects\Maze_IMG_Process\maze200x200.png")
+        maze_pic = Img_process(r"C:\Users\Memo\Desktop\Python\Projects\Maze_IMG_Process\maze50x50.png")
         break
 
-maze_to_be_solved = maze_pic.condense()
+"""
+maze_to_be_solved = maze_pic.condense(True) 
 maze_solved = Solver(maze_to_be_solved).move_forward()
 To_image(maze_solved).paintit()
+
+# For just finding if a path is possible and painting it
+"""
+
+
+
+maze_to_be_solved_astar, astar_start, astar_end = maze_pic.condense(False)  # For A* pathfinding
+
+maze_inv = change_1_to_0(maze_to_be_solved_astar) # Change 1s to 0s for pathfinding algorithm
+
+path, maze_solved_astar = astar(maze_inv,astar_start,astar_end) # Gives both the path in coordinates and the solved maze with number "9" replacing passed positions
+
+maze_solved_astar = change_0_to_1(maze_solved_astar) # Changes back to reverse mode for image drawing.
+
+To_image(maze_solved_astar).paintit() # Draws it
